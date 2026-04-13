@@ -43,7 +43,7 @@ async def ping_monitor(monitor: Monitor, db: Session) -> None:
     db.add(check)
     db.commit()
 
-    state_changed = previous is None or previous.is_up != is_up
+    state_changed = previous is not None and previous.is_up != is_up
 
     if state_changed:
         send_alert(db, monitor, is_up)
@@ -59,6 +59,15 @@ async def run_checks() -> None:
             joinedload(Monitor.user)
         ).filter(Monitor.is_active == True).all()  # noqa: E712
         for monitor in monitors:
+            last_check = db.query(MonitorCheck).filter(
+                MonitorCheck.monitor_id == monitor.id
+            ).order_by(MonitorCheck.checked_at.desc()).first()
+
+            if last_check:
+                elapsed = (datetime.utcnow() - last_check.checked_at).total_seconds()
+                if elapsed < monitor.interval_minutes * 60:
+                    continue
+
             await ping_monitor(monitor, db)
     finally:
         db.close()
