@@ -1,97 +1,154 @@
 # Uptime Monitor
 
-Narzędzie do monitorowania dostępności serwisów HTTP. Cyklicznie sprawdza podane URLe i wysyła powiadomienie emailem gdy coś przestaje działać.
+> Narzędzie do monitorowania dostępności serwisów HTTP/HTTPS. Cyklicznie pinguje zdefiniowane URLe i wysyła powiadomienie emailem przy awarii lub powrocie do działania.
 
-> 🚧 **W trakcie budowy** — projekt w fazie wczesnego developmentu.
+Projekt budowany jako samodzielne portfolio SaaS poza studiami — od zera, bez gotowych szablonów. Celem jest działający, publicznie dostępny produkt z realnym use-casem: własne konto, własne monitory, własne alerty.
+
+> 🚧 **W trakcie budowy** — aktualnie Faza 2 (scheduler + CRUD monitorów)
+
+---
 
 ## Demo
 
-> Screenshot / GIF dashboardu pojawi się po ukończeniu frontendu.
+> Screenshot / GIF dashboardu pojawi się po ukończeniu frontendu.  
+> Konto demo: `demo@demo.com` / `demo123` (dostępne po deployu)
 
-## Funkcjonalności (planowane)
+---
+
+## Co pokazuje ten projekt technicznie
+
+- **Projektowanie REST API** — endpointy z autoryzacją JWT, walidacją danych wejściowych, obsługą błędów
+- **Praca z bazą danych** — SQLAlchemy ORM, relacje między tabelami, migracje przez Alembic
+- **Zadania w tle** — APScheduler uruchamiający cykliczne HTTP pingi bez zewnętrznych zależności (bez Celery)
+- **Bezpieczeństwo** — rate limiting (slowapi), ochrona przed SSRF przy walidacji URL, limit zasobów per użytkownik
+- **Integracja z zewnętrznym API** — Mailgun do wysyłki emaili z logiką anty-spam
+- **Frontend SPA** — React + Vite, wykresy response time (Recharts), zarządzanie tokenem JWT
+- **Deploy** — Railway (backend + managed PostgreSQL) + Vercel (frontend), automatyczny z GitHuba
+
+---
+
+## Funkcjonalności
 
 - Monitorowanie dowolnych endpointów HTTP/HTTPS
 - Konfigurowalny interwał sprawdzania (per monitor)
-- Powiadomienia email przy awarii i powrocie do działania
-- Historia czasów odpowiedzi i dashboard statusów
-- Autentykacja oparta na JWT
+- Powiadomienia email przy awarii i powrocie do działania — jeden alert na incydent
+- Historia czasów odpowiedzi z wykresem
+- Dashboard z widokiem statusów wszystkich monitorów
+- Autentykacja JWT z rate limitingiem na endpointach auth
+- Ochrona przed SSRF i limit monitorów per konto (max 20)
 
-## Stack technologiczny
+---
+
+## Stack
 
 | Warstwa | Technologia |
 |---|---|
-| Backend | FastAPI (Python) |
-| Baza danych | PostgreSQL |
+| Backend | FastAPI (Python 3.14) |
+| Baza danych | PostgreSQL 16 |
 | Scheduler | APScheduler |
 | Email | Mailgun |
 | Frontend | React + Vite |
-| Deploy | Railway (backend) + Vercel (frontend) |
+| Deploy | Railway + Vercel |
+
+---
 
 ## Struktura projektu
 
 ```
 uptime-monitor/
+├── .env.example              # Szablon zmiennych środowiskowych
+├── docker-compose.yml        # PostgreSQL do lokalnego devu
+├── README.md
+│
 ├── backend/
+│   ├── alembic/              # Migracje bazy danych
+│   │   └── versions/
 │   ├── app/
-│   │   ├── api/          # Handlery routów
-│   │   ├── core/         # Konfiguracja, security, scheduler
-│   │   ├── db/           # Sesja bazy danych
-│   │   ├── models/       # Modele SQLAlchemy
-│   │   ├── schemas/      # Schematy Pydantic
-│   │   ├── services/     # Logika biznesowa
+│   │   ├── api/
+│   │   │   ├── deps.py       # get_current_user — dependency injection
+│   │   │   └── routes/
+│   │   │       ├── auth.py
+│   │   │       └── monitors.py
+│   │   ├── core/
+│   │   │   ├── config.py     # Ustawienia przez pydantic-settings
+│   │   │   ├── scheduler.py  # APScheduler — cykliczne pingi
+│   │   │   └── security.py   # JWT, bcrypt
+│   │   ├── db/
+│   │   │   ├── base.py       # DeclarativeBase
+│   │   │   └── session.py    # get_db — dependency injection
+│   │   ├── models/           # SQLAlchemy: User, Monitor, MonitorCheck, Alert
+│   │   ├── schemas/          # Pydantic: walidacja requestów i responsów
+│   │   ├── services/         # Logika biznesowa
 │   │   └── main.py
-│   ├── alembic/          # Migracje bazy danych
-│   ├── requirements.txt
-│   └── Dockerfile
-├── frontend/
-│   └── src/
-│       ├── api/
-│       ├── components/
-│       ├── pages/
-│       └── hooks/
-├── docker-compose.yml
-└── README.md
+│   ├── alembic.ini
+│   ├── Dockerfile
+│   └── requirements.txt
+│
+└── frontend/
+    └── src/
+        ├── api/              # Klienty HTTP (axios)
+        ├── components/       # MonitorCard, StatusBadge, ResponseChart
+        ├── hooks/            # useAuth
+        ├── pages/            # Login, Register, Dashboard, MonitorDetail
+        ├── App.jsx
+        └── main.jsx
 ```
+
+---
 
 ## Uruchomienie lokalne
 
-**Wymagania:** Python 3.11+, Docker
+**Wymagania:** Python 3.14+, Docker
 
 ```bash
 # 1. Sklonuj repo
 git clone https://github.com/g0rzki/uptime-monitor.git
 cd uptime-monitor
 
-# 2. Uruchom bazę danych
+# 2. Uzupełnij zmienne środowiskowe
+cp .env.example .env
+# Wygeneruj SECRET_KEY: openssl rand -hex 32
+
+# 3. Uruchom bazę danych
 docker compose up -d
 
-# 3. Skonfiguruj backend
+# 4. Skonfiguruj backend
 cd backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env
 
-# 4. Uruchom migracje
+# 5. Uruchom migracje
 alembic upgrade head
 
-# 5. Wystartuj API
+# 6. Wystartuj API
 uvicorn app.main:app --reload
 ```
 
-API dostępne pod `http://localhost:8000`  
-Swagger UI pod `http://localhost:8000/docs`
+API: `http://localhost:8000`  
+Swagger UI: `http://localhost:8000/docs`
 
-## Self-hosting
+---
 
-Działa na każdym VPS z Dockerem (minimum 512MB RAM, ARM64 lub x86).
+## Zmienne środowiskowe
+
+```env
+DATABASE_URL=postgresql://admin:admin@localhost:5432/uptimedb
+SECRET_KEY=             # openssl rand -hex 32
+MAILGUN_API_KEY=        # opcjonalne na start, wymagane do alertów
+MAILGUN_DOMAIN=
+```
+
+---
 
 ## Roadmap
 
-- [x] Setup projektu
-- [x] Auth (rejestracja / login / JWT)
-- [ ] Endpointy CRUD dla monitorów
+- [x] Setup projektu, struktura, Docker
+- [x] Modele bazy danych + migracje Alembic
+- [x] Auth — rejestracja, login, JWT
+- [ ] Rate limiting + walidacja URL (SSRF)
+- [ ] CRUD monitorów + deps.py
 - [ ] Scheduler — cykliczne sprawdzanie HTTP
 - [ ] Powiadomienia email przez Mailgun
-- [ ] Frontend React — dashboard i widok monitora
-- [ ] Deploy na Railway + Vercel
+- [ ] Frontend React — dashboard, wykresy
+- [ ] Deploy Railway + Vercel
