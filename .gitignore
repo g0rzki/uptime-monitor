@@ -208,7 +208,6 @@ __marimo__/
 
 # Node / Frontend
 node_modules/
-dist/
 .next/
 
 # macOS

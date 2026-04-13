@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.db.session import get_db
 from app.api.deps import get_current_user
 from app.models.user import User
 from app.models.monitor import Monitor
+from app.models.monitor_check import MonitorCheck
 from app.schemas.monitor import MonitorCreate, MonitorUpdate, MonitorResponse
 from app.schemas.check import CheckResponse
 from app.services import monitor_service
+from app.services.alert_service import send_alert
 
 router = APIRouter(prefix="/monitors", tags=["monitors"])
 
@@ -16,6 +18,7 @@ def get_monitors(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """Zwraca listę wszystkich monitorów zalogowanego użytkownika."""
     return monitor_service.get_monitors(db, current_user)
 
 
@@ -25,6 +28,7 @@ def create_monitor(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """Dodaje nowy monitor. Waliduje URL (SSRF), sprawdza limit 20 i duplikaty."""
     return monitor_service.create_monitor(db, data, current_user)
 
 
@@ -34,6 +38,7 @@ def get_monitor(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """Zwraca szczegóły pojedynczego monitora. 404 jeśli nie należy do usera."""
     return monitor_service.get_monitor(db, monitor_id, current_user)
 
 
@@ -44,6 +49,7 @@ def update_monitor(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """Częściowa aktualizacja monitora — URL, interwał lub status aktywności."""
     return monitor_service.update_monitor(db, monitor_id, data, current_user)
 
 
@@ -53,6 +59,7 @@ def delete_monitor(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """Usuwa monitor wraz z historią checków (cascade delete)."""
     monitor_service.delete_monitor(db, monitor_id, current_user)
 
 
@@ -64,8 +71,8 @@ def get_checks(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    """Historia pingów dla monitora z paginacją (limit/offset). Sortowanie od najnowszych."""
     monitor_service.get_monitor(db, monitor_id, current_user)
-    from app.models.monitor_check import MonitorCheck
     checks = db.query(MonitorCheck).filter(
         MonitorCheck.monitor_id == monitor_id
     ).order_by(MonitorCheck.checked_at.desc()).limit(limit).offset(offset).all()
@@ -78,8 +85,7 @@ def test_alert(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    from app.services.alert_service import send_alert
-    from sqlalchemy.orm import joinedload
+    """Wysyła testowy email DOWN dla danego monitora. Służy do weryfikacji konfiguracji Resend."""
     monitor = db.query(Monitor).options(
         joinedload(Monitor.user)
     ).filter(Monitor.id == monitor_id, Monitor.user_id == current_user.id).first()

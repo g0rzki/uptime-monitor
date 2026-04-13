@@ -8,12 +8,15 @@ from app.models.user import User
 from app.core.security import hash_password, verify_password, create_access_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+# Lokalny limiter — 5 prób logowania/rejestracji na minutę per IP
 limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/minute")
 def register(request: Request, body: RegisterRequest, db: Session = Depends(get_db)):
+    """Rejestracja nowego użytkownika. Email musi być unikalny, hasło min. 8 znaków."""
     if db.query(User).filter(User.email == body.email).first():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -28,6 +31,7 @@ def register(request: Request, body: RegisterRequest, db: Session = Depends(get_
 @router.post("/login", response_model=AuthResponse)
 @limiter.limit("5/minute")
 def login(request: Request, body: LoginRequest, db: Session = Depends(get_db)):
+    """Logowanie — zwraca JWT ważny przez 24h. Nagłówek WWW-Authenticate zgodny z RFC 6750."""
     user = db.query(User).filter(User.email == body.email).first()
     if not user or not verify_password(body.password, user.password):
         raise HTTPException(

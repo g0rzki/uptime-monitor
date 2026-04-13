@@ -14,6 +14,9 @@ class Monitor(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # Relacja do właściciela — używana przy wysyłce alertów (monitor.user.email)
     user = relationship("User", back_populates="monitors")
+
+    # Cascade delete — usunięcie monitora usuwa jego checki i alerty
     checks = relationship("MonitorCheck", back_populates="monitor", cascade="all, delete")
     alerts = relationship("Alert", back_populates="monitor", cascade="all, delete")

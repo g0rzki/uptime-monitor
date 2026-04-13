@@ -6,6 +6,7 @@ from app.db.session import get_db
 from app.core.config import settings
 from app.models.user import User
 
+# Bearer token scheme — Swagger UI automatycznie pokazuje pole "Authorize"
 bearer_scheme = HTTPBearer()
 
 
@@ -13,6 +14,11 @@ def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> User:
+    """
+    Dependency injection — wyciąga zalogowanego usera z JWT.
+    Używana we wszystkich chronionych endpointach przez Depends(get_current_user).
+    Rzuca 401 jeśli token jest nieprawidłowy lub użytkownik nie istnieje.
+    """
     token = credentials.credentials
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
@@ -26,4 +32,4 @@ def get_current_user(
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
 
-    return user
+    return user  # type: ignore

@@ -5,10 +5,11 @@ from typing import Optional
 
 class MonitorCreate(BaseModel):
     url: HttpUrl
-    interval_minutes: Optional[int] = 5
+    interval_minutes: Optional[int] = 5  # Domyślny interwał: 5 minut
 
 
 class MonitorUpdate(BaseModel):
+    """Wszystkie pola opcjonalne — partial update przez PATCH."""
     url: Optional[HttpUrl] = None
     interval_minutes: Optional[int] = None
     is_active: Optional[bool] = None
@@ -22,4 +23,4 @@ class MonitorResponse(BaseModel):
     created_at: datetime
 
     class Config:
-        from_attributes = True
+        from_attributes = True  # Obsługa obiektów SQLAlchemy

@@ -9,7 +9,8 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     email = Column(String, unique=True, nullable=False, index=True)
-    password = Column(String, nullable=False)
+    password = Column(String, nullable=False)  # hash bcrypt
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # Cascade delete — usunięcie usera usuwa wszystkie jego monitory
     monitors = relationship("Monitor", back_populates="user", cascade="all, delete")

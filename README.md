@@ -4,7 +4,7 @@
 
 Projekt budowany jako samodzielne portfolio SaaS poza studiami — od zera, bez gotowych szablonów. Celem jest działający, publicznie dostępny produkt z realnym use-casem: własne konto, własne monitory, własne alerty.
 
-> 🚧 **W trakcie budowy** — aktualnie Faza 3 (powiadomienia email)
+> 🚧 **W trakcie budowy** — aktualnie Faza 5 (Deploy Railway + Vercel)
 
 ---
 
@@ -148,6 +148,6 @@ MAIL_FROM=onboarding@resend.dev
 - [x] Auth — rejestracja, login, JWT, rate limiting
 - [x] CRUD monitorów + walidacja URL (SSRF) + limit per konto
 - [x] Scheduler — cykliczne sprawdzanie HTTP, wykrywanie awarii
-- [ ] Powiadomienia email przez Resend
-- [ ] Frontend React — dashboard, wykresy
+- [x] Powiadomienia email przez Resend
+- [x] Frontend React — dashboard, wykresy
 - [ ] Deploy Railway + Vercel

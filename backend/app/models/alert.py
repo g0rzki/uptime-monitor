@@ -9,7 +9,7 @@ class Alert(Base):
 
     id = Column(Integer, primary_key=True)
     monitor_id = Column(Integer, ForeignKey("monitors.id"), nullable=False)
-    reason = Column(String, nullable=False)
+    reason = Column(String, nullable=False)  # "UP" lub "DOWN"
     sent_at = Column(DateTime, default=datetime.utcnow)
 
     monitor = relationship("Monitor", back_populates="alerts")

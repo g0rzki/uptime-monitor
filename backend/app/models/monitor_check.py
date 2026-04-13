@@ -9,8 +9,8 @@ class MonitorCheck(Base):
 
     id = Column(Integer, primary_key=True)
     monitor_id = Column(Integer, ForeignKey("monitors.id"), nullable=False)
-    status_code = Column(Integer, nullable=True)
-    response_time_ms = Column(BigInteger, nullable=True)
+    status_code = Column(Integer, nullable=True)       # None jeśli brak odpowiedzi
+    response_time_ms = Column(BigInteger, nullable=True)  # None jeśli timeout
     is_up = Column(Boolean, nullable=False)
     checked_at = Column(DateTime, default=datetime.utcnow)
 

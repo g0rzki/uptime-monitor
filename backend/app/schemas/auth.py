@@ -5,7 +5,7 @@ from pydantic import Field
 
 class RegisterRequest(BaseModel):
     email: EmailStr
-    password: Annotated[str, Field(min_length=8)]
+    password: Annotated[str, Field(min_length=8, description="Minimum 8 znaków")]
 
 
 class LoginRequest(BaseModel):
