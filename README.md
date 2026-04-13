@@ -8,7 +8,7 @@ Projekt budowany jako samodzielne portfolio SaaS poza studiami — od zera, bez 
 
 ## Demo
 
-**Live:** https://monitor.gorzkiewicz.dev 
+**Live:** https://monitor.gorzkiewicz.dev  
 Konto demo: `demo@demo.com` / `demo1234`
 
 ---
