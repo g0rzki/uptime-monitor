@@ -12,6 +12,7 @@ export default function Register({ onLogin }) {
     e.preventDefault()
     setError('')
     try {
+      // Rejestracja + automatyczne logowanie po sukcesie
       await register(email, password)
       await login(email, password)
       onLogin()

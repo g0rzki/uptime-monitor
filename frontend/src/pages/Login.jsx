@@ -6,7 +6,6 @@ export default function Login({ onLogin }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
@@ -14,7 +13,7 @@ export default function Login({ onLogin }) {
     setError('')
     try {
       await login(email, password)
-      onLogin()
+      onLogin() // Ustawia isAuthenticated w App.jsx
       navigate('/dashboard')
     } catch {
       setError('Nieprawidłowy email lub hasło')

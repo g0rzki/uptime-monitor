@@ -2,14 +2,15 @@ import { useNavigate } from 'react-router-dom'
 import StatusBadge from './StatusBadge'
 import { deleteMonitor } from '../api/monitors'
 
+// Karta monitora na dashboardzie — klik otwiera szczegóły, × usuwa
 export default function MonitorCard({ monitor, onDeleted }) {
   const navigate = useNavigate()
 
   const handleDelete = async (e) => {
-    e.stopPropagation()
+    e.stopPropagation() // Nie propaguj kliknięcia do navigate
     if (!confirm(`Usunąć monitor ${monitor.url}?`)) return
     await deleteMonitor(monitor.id)
-    onDeleted()
+    onDeleted() // Odśwież listę w Dashboard
   }
 
   return (

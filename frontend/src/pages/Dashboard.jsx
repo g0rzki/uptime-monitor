@@ -16,6 +16,7 @@ export default function Dashboard({ onLogout }) {
       const res = await getMonitors()
       setMonitors(res.data)
     } catch {
+      // 401 — token wygasł lub nieprawidłowy, wyloguj i przekieruj
       onLogout()
       navigate('/login')
     } finally {
@@ -31,7 +32,7 @@ export default function Dashboard({ onLogout }) {
     try {
       await createMonitor(url, interval)
       setUrl('')
-      fetchMonitors()
+      fetchMonitors() // Odśwież listę po dodaniu
     } catch (err) {
       setError(err.response?.data?.detail || 'Błąd dodawania monitora')
     }

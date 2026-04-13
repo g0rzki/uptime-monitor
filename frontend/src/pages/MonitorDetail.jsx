@@ -14,6 +14,7 @@ export default function MonitorDetail() {
   useEffect(() => {
     const fetch = async () => {
       try {
+        // Równoległe zapytania — monitory i historia pingów
         const [monitorsRes, checksRes] = await Promise.all([
           getMonitors(),
           getChecks(id)
@@ -36,7 +37,10 @@ export default function MonitorDetail() {
     setMonitor(m => ({ ...m, is_active: !m.is_active }))
   }
 
+  // Ostatni check do wyświetlenia aktualnego statusu
   const lastCheck = checks[0]
+
+  // Średni czas odpowiedzi — tylko z checków które miały odpowiedź
   const avgResponse = checks.filter(c => c.response_time_ms).length
     ? Math.round(checks.filter(c => c.response_time_ms).reduce((s, c) => s + c.response_time_ms, 0) / checks.filter(c => c.response_time_ms).length)
     : null

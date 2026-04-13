@@ -1,3 +1,4 @@
+// Pill z kolorowym wskaźnikiem statusu — zielony UP, czerwony DOWN
 export default function StatusBadge({ isUp }) {
   return (
     <span style={{

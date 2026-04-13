@@ -10,7 +10,7 @@ Projekt budowany jako samodzielne portfolio SaaS poza studiami — od zera, bez 
 
 ## Demo
 
-> Screenshot / GIF dashboardu pojawi się po ukończeniu frontendu.  
+> GIF dashboardu pojawi się po deployu.  
 > Konto demo: `demo@demo.com` / `demo123` (dostępne po deployu)
 
 ---
@@ -85,20 +85,23 @@ uptime-monitor/
 │   └── requirements.txt
 │
 └── frontend/
-    └── src/
-        ├── api/              # Klienty HTTP (axios)
-        ├── components/       # MonitorCard, StatusBadge, ResponseChart
-        ├── hooks/            # useAuth
-        ├── pages/            # Login, Register, Dashboard, MonitorDetail
-        ├── App.jsx
-        └── main.jsx
+    ├── src/
+    │   ├── api/              # Klienty HTTP (axios)
+    │   ├── components/       # MonitorCard, StatusBadge, ResponseChart
+    │   ├── hooks/            # useAuth
+    │   ├── pages/            # Login, Register, Dashboard, MonitorDetail
+    │   ├── App.jsx
+    │   └── main.jsx
+    ├── index.html
+    ├── package.json
+    └── vite.config.js        # Proxy /api -> localhost:8000
 ```
 
 ---
 
 ## Uruchomienie lokalne
 
-**Wymagania:** Python 3.14+, Docker
+**Wymagania:** Python 3.14+, Node.js 18+, Docker
 
 ```bash
 # 1. Sklonuj repo
@@ -125,8 +128,18 @@ alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
+W osobnym terminalu:
+
+```bash
+# 7. Uruchom frontend
+cd frontend
+npm install
+npm run dev
+```
+
 API: `http://localhost:8000`  
-Swagger UI: `http://localhost:8000/docs`
+Swagger UI: `http://localhost:8000/docs`  
+Frontend: `http://localhost:5173`
 
 ---
 
