@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.api.deps import get_current_user
 from app.models.user import User
+from app.models.monitor import Monitor
 from app.schemas.monitor import MonitorCreate, MonitorUpdate, MonitorResponse
 from app.schemas.check import CheckResponse
 from app.services import monitor_service
@@ -69,3 +70,20 @@ def get_checks(
         MonitorCheck.monitor_id == monitor_id
     ).order_by(MonitorCheck.checked_at.desc()).limit(limit).offset(offset).all()
     return checks
+
+
+@router.post("/{monitor_id}/test-alert", status_code=status.HTTP_200_OK)
+def test_alert(
+    monitor_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    from app.services.alert_service import send_alert
+    from sqlalchemy.orm import joinedload
+    monitor = db.query(Monitor).options(
+        joinedload(Monitor.user)
+    ).filter(Monitor.id == monitor_id, Monitor.user_id == current_user.id).first()
+    if not monitor:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Monitor not found")
+    send_alert(db, monitor, is_up=False)  # type: ignore
+    return {"message": "Test alert sent"}

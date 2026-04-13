@@ -4,7 +4,7 @@
 
 Projekt budowany jako samodzielne portfolio SaaS poza studiami — od zera, bez gotowych szablonów. Celem jest działający, publicznie dostępny produkt z realnym use-casem: własne konto, własne monitory, własne alerty.
 
-> 🚧 **W trakcie budowy** — aktualnie Faza 2 (scheduler + CRUD monitorów)
+> 🚧 **W trakcie budowy** — aktualnie Faza 3 (powiadomienia email)
 
 ---
 
@@ -21,7 +21,7 @@ Projekt budowany jako samodzielne portfolio SaaS poza studiami — od zera, bez 
 - **Praca z bazą danych** — SQLAlchemy ORM, relacje między tabelami, migracje przez Alembic
 - **Zadania w tle** — APScheduler uruchamiający cykliczne HTTP pingi bez zewnętrznych zależności (bez Celery)
 - **Bezpieczeństwo** — rate limiting (slowapi), ochrona przed SSRF przy walidacji URL, limit zasobów per użytkownik
-- **Integracja z zewnętrznym API** — Mailgun do wysyłki emaili z logiką anty-spam
+- **Integracja z zewnętrznym API** — Resend do wysyłki emaili z logiką anty-spam
 - **Frontend SPA** — React + Vite, wykresy response time (Recharts), zarządzanie tokenem JWT
 - **Deploy** — Railway (backend + managed PostgreSQL) + Vercel (frontend), automatyczny z GitHuba
 
@@ -46,7 +46,7 @@ Projekt budowany jako samodzielne portfolio SaaS poza studiami — od zera, bez 
 | Backend | FastAPI (Python 3.14) |
 | Baza danych | PostgreSQL 16 |
 | Scheduler | APScheduler |
-| Email | Mailgun |
+| Email | Resend |
 | Frontend | React + Vite |
 | Deploy | Railway + Vercel |
 
@@ -135,8 +135,8 @@ Swagger UI: `http://localhost:8000/docs`
 ```env
 DATABASE_URL=postgresql://admin:admin@localhost:5432/uptimedb
 SECRET_KEY=             # openssl rand -hex 32
-MAILGUN_API_KEY=        # opcjonalne na start, wymagane do alertów
-MAILGUN_DOMAIN=
+RESEND_API_KEY=         # resend.com — darmowy tier, wymagane do alertów
+MAIL_FROM=onboarding@resend.dev
 ```
 
 ---
@@ -145,10 +145,9 @@ MAILGUN_DOMAIN=
 
 - [x] Setup projektu, struktura, Docker
 - [x] Modele bazy danych + migracje Alembic
-- [x] Auth — rejestracja, login, JWT
-- [ ] Rate limiting + walidacja URL (SSRF)
-- [ ] CRUD monitorów + deps.py
-- [ ] Scheduler — cykliczne sprawdzanie HTTP
-- [ ] Powiadomienia email przez Mailgun
+- [x] Auth — rejestracja, login, JWT, rate limiting
+- [x] CRUD monitorów + walidacja URL (SSRF) + limit per konto
+- [x] Scheduler — cykliczne sprawdzanie HTTP, wykrywanie awarii
+- [ ] Powiadomienia email przez Resend
 - [ ] Frontend React — dashboard, wykresy
 - [ ] Deploy Railway + Vercel

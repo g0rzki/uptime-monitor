@@ -8,9 +8,8 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
 
-    MAILGUN_API_KEY: str = ""
-    MAILGUN_DOMAIN: str = ""
-    MAIL_FROM: str = "noreply@uptimemonitor.app"
+    RESEND_API_KEY: str = ""
+    MAIL_FROM: str = "onboarding@resend.dev"
 
     REQUEST_TIMEOUT_SECONDS: int = 10
     DEFAULT_MONITOR_INTERVAL: int = 5
