@@ -35,7 +35,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "https://uptime-monitor-sepia.vercel.app/login",
+        "https://uptime-monitor-sepia.vercel.app",
+        "https://uptime-monitor-g0rzkis-projects.vercel.app",
+        "https://uptime-monitor-git-main-g0rzkis-projects.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
