@@ -38,6 +38,7 @@ app.add_middleware(
         "https://uptime-monitor-sepia.vercel.app",
         "https://uptime-monitor-g0rzkis-projects.vercel.app",
         "https://uptime-monitor-git-main-g0rzkis-projects.vercel.app",
+        "https://monitor.gorzkiewicz.dev",
     ],
     allow_credentials=True,
     allow_methods=["*"],
