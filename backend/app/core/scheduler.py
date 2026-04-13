@@ -28,6 +28,11 @@ async def ping_monitor(monitor: Monitor, db: Session) -> None:
     except Exception as e:
         logger.warning(f"Monitor {monitor.id} ({monitor.url}) failed: {e}")
 
+    # Pobierz poprzedni check
+    previous = db.query(MonitorCheck).filter(
+        MonitorCheck.monitor_id == monitor.id
+    ).order_by(MonitorCheck.checked_at.desc()).first()
+
     check = MonitorCheck(
         monitor_id=monitor.id,
         status_code=status_code,
@@ -37,6 +42,16 @@ async def ping_monitor(monitor: Monitor, db: Session) -> None:
     )
     db.add(check)
     db.commit()
+
+    # Wykryj zmianę stanu
+    state_changed = previous is None or previous.is_up != is_up
+
+    if state_changed:
+        if is_up:
+            logger.info(f"Monitor {monitor.id} ({monitor.url}) RECOVERED")
+        else:
+            logger.warning(f"Monitor {monitor.id} ({monitor.url}) DOWN")
+        # Tu w Fazie 3 podepniemy wysyłkę emaila
 
     logger.info(f"Monitor {monitor.id} ({monitor.url}) — is_up={is_up}, status={status_code}, time={response_time_ms}ms")
 

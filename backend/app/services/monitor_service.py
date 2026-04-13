@@ -52,6 +52,18 @@ def create_monitor(db: Session, data: MonitorCreate, user: User) -> Monitor:
         )
 
     url = str(data.url)
+
+    # Sprawdzenie duplikatu
+    existing = db.query(Monitor).filter(
+        Monitor.user_id == user.id,
+        Monitor.url == url
+    ).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Monitor for this URL already exists"
+        )
+
     _validate_url(url)
 
     monitor = Monitor(user_id=user.id, url=url, interval_minutes=data.interval_minutes)
