@@ -1,7 +1,9 @@
 import axios from 'axios'
 
 // Bazowa instancja axios dla endpointów publicznych
-const api = axios.create({ baseURL: '/api' })
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000'
+})
 
 export const register = (email, password) =>
   api.post('/auth/register', { email, password })

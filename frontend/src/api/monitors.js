@@ -4,7 +4,7 @@ import { getToken } from './auth'
 // Fabryka instancji axios z aktualnym tokenem JWT w nagłówku
 // Wywołana jako funkcja żeby zawsze odczytać świeży token z localStorage
 const api = () => axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
   headers: { Authorization: `Bearer ${getToken()}` }
 })
 
