@@ -8,7 +8,7 @@ Projekt budowany jako samodzielne portfolio SaaS poza studiami — od zera, bez 
 
 ## Demo
 
-**Live:** https://uptime-monitor-sepia.vercel.app  
+**Live:** https://monitor.gorzkiewicz.dev 
 Konto demo: `demo@demo.com` / `demo1234`
 
 ---
