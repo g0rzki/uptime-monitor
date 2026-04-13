@@ -4,14 +4,12 @@
 
 Projekt budowany jako samodzielne portfolio SaaS poza studiami — od zera, bez gotowych szablonów. Celem jest działający, publicznie dostępny produkt z realnym use-casem: własne konto, własne monitory, własne alerty.
 
-> 🚧 **W trakcie budowy** — aktualnie Faza 5 (Deploy Railway + Vercel)
-
 ---
 
 ## Demo
 
-> GIF dashboardu pojawi się po deployu.  
-> Konto demo: `demo@demo.com` / `demo123` (dostępne po deployu)
+**Live:** https://uptime-monitor-sepia.vercel.app  
+Konto demo: `demo@demo.com` / `demo1234`
 
 ---
 
@@ -163,4 +161,4 @@ MAIL_FROM=onboarding@resend.dev
 - [x] Scheduler — cykliczne sprawdzanie HTTP, wykrywanie awarii
 - [x] Powiadomienia email przez Resend
 - [x] Frontend React — dashboard, wykresy
-- [ ] Deploy Railway + Vercel
+- [x] Deploy Railway + Vercel
