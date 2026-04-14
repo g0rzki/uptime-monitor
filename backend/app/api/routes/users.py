@@ -15,9 +15,14 @@ class ChangePasswordRequest(BaseModel):
 
     @field_validator("new_password")
     @classmethod
-    def validate_length(cls, v: str) -> str:
+    def validate_password_strength(cls, v: str) -> str:
+        """Hasło musi mieć min. 8 znaków, zawierać literę i cyfrę."""
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters")
+        if not any(c.isalpha() for c in v):
+            raise ValueError("Password must contain at least one letter")
+        if not any(c.isdigit() for c in v):
+            raise ValueError("Password must contain at least one digit")
         return v
 
 

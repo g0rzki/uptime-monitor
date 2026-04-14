@@ -1,17 +1,18 @@
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, HttpUrl, Field
 from datetime import datetime
 from typing import Optional
 
 
 class MonitorCreate(BaseModel):
-    url: HttpUrl
-    interval_minutes: Optional[int] = 5  # Domyślny interwał: 5 minut
+    url: HttpUrl = Field(..., max_length=2048)
+    # Interwał w minutach — min. 1, max. 1440 (24h), domyślnie 5
+    interval_minutes: int = Field(default=5, ge=1, le=1440)
 
 
 class MonitorUpdate(BaseModel):
     """Wszystkie pola opcjonalne — partial update przez PATCH."""
-    url: Optional[HttpUrl] = None
-    interval_minutes: Optional[int] = None
+    url: Optional[HttpUrl] = Field(default=None, max_length=2048)
+    interval_minutes: Optional[int] = Field(default=None, ge=1, le=1440)
     is_active: Optional[bool] = None
 
 

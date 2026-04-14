@@ -1,6 +1,8 @@
 import httpx
 import logging
+import asyncio
 from datetime import datetime
+from urllib.parse import urlparse
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
@@ -22,6 +24,14 @@ RETRY_DELAY_SECONDS = 5
 INTERVAL_BUFFER_SECONDS = 30
 
 
+def mask_url(url: str) -> str:
+    """Maskuje query string w URL przed logowaniem — chroni tokeny i klucze API w URLach."""
+    parsed = urlparse(url)
+    if parsed.query:
+        return parsed._replace(query="***").geturl()
+    return url
+
+
 async def ping_once(url: str) -> tuple[bool, int | None, int | None]:
     """
     Pojedyncze odpytanie URL przez HTTP GET.
@@ -36,7 +46,7 @@ async def ping_once(url: str) -> tuple[bool, int | None, int | None]:
         is_up = response.status_code < 500
         return is_up, response.status_code, int(elapsed)
     except Exception as e:
-        logger.warning(f"Ping failed for {url}: {e}")
+        logger.warning(f"Ping failed for {mask_url(url)}: {e}")
         return False, None, None
 
 
@@ -52,8 +62,7 @@ async def ping_monitor(monitor: Monitor, db: Session) -> None:
     # Retry — tylko jeśli pierwsza próba nie powiodła się
     if not is_up:
         for attempt in range(1, RETRY_COUNT):
-            logger.info(f"Monitor {monitor.id} ({monitor.url}) — retry {attempt}/{RETRY_COUNT - 1}")
-            import asyncio
+            logger.info(f"Monitor {monitor.id} ({mask_url(monitor.url)}) — retry {attempt}/{RETRY_COUNT - 1}")
             await asyncio.sleep(RETRY_DELAY_SECONDS)
             is_up, status_code, response_time_ms = await ping_once(monitor.url)
             if is_up:
@@ -79,7 +88,7 @@ async def ping_monitor(monitor: Monitor, db: Session) -> None:
     if state_changed:
         send_alert(db, monitor, is_up)
 
-    logger.info(f"Monitor {monitor.id} ({monitor.url}) — is_up={is_up}, status={status_code}, time={response_time_ms}ms")
+    logger.info(f"Monitor {monitor.id} ({mask_url(monitor.url)}) — is_up={is_up}, status={status_code}, time={response_time_ms}ms")
 
 
 async def run_checks() -> None:

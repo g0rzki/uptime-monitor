@@ -14,6 +14,19 @@ import app.models.monitor  # noqa: F401
 import app.models.monitor_check  # noqa: F401
 import app.models.alert  # noqa: F401
 
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Dodaje nagłówki bezpieczeństwa HTTP do każdej odpowiedzi."""
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        return response
+
 # Rate limiter — klucz per IP, obsługa błędu 429
 limiter = Limiter(key_func=get_remote_address)
 
@@ -30,6 +43,8 @@ app = FastAPI(title="Uptime Monitor API", lifespan=lifespan)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 # CORS — lokalnie Vite dev server, na produkcji podmienić na właściwą domenę
 app.add_middleware(
