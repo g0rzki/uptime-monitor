@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
+from datetime import datetime, timedelta
 from app.db.session import get_db
 from app.api.deps import get_current_user
 from app.models.user import User
@@ -122,7 +123,6 @@ def get_public_status(db: Session = Depends(get_db)):
         ).order_by(MonitorCheck.checked_at.desc()).first()
 
         # Uptime za ostatnie 24h — procent udanych pingów
-        from datetime import timedelta
         cutoff = datetime.utcnow() - timedelta(hours=24)
         total = db.query(func.count(MonitorCheck.id)).filter(
             MonitorCheck.monitor_id == monitor.id,

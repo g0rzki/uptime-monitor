@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { getToken } from '../api/auth'
 
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -48,12 +49,12 @@ export default function StatusPage() {
           <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text)' }}>Uptime Monitor</span>
         </div>
         <button
-          onClick={() => navigate('/login')}
+          onClick={() => navigate(getToken() ? '/dashboard' : '/login')}
           style={{ fontSize: '12px', color: 'var(--label)', background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.2s' }}
           onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
           onMouseLeave={e => e.currentTarget.style.color = 'var(--label)'}
         >
-          Zaloguj się →
+          {getToken() ? 'Dashboard →' : 'Zaloguj się →'}
         </button>
       </header>
 
@@ -110,13 +111,10 @@ export default function StatusPage() {
                     borderBottom: i < monitors.length - 1 ? '1px solid var(--border)' : 'none'
                   }}
                 >
-                  {/* Status dot */}
                   <span style={{
                     width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0,
                     background: m.is_up === null ? 'var(--border)' : m.is_up ? '#5affa3' : '#ff5f57'
                   }} />
-
-                  {/* URL */}
                   <div style={{ minWidth: 0 }}>
                     <p style={{ fontSize: '13px', color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {m.url.replace(/^https?:\/\//, '')}
@@ -125,16 +123,12 @@ export default function StatusPage() {
                       {m.last_checked ? utc(m.last_checked) : '—'}
                     </p>
                   </div>
-
-                  {/* Uptime 24h */}
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
                     <p style={{ fontSize: '11px', color: 'var(--label)' }}>24h</p>
                     <p style={{ fontSize: '12px', color: m.uptime_24h === 100 ? '#5affa3' : m.uptime_24h < 90 ? '#ff5f57' : 'var(--dim)' }}>
                       {formatUptime(m.uptime_24h)}
                     </p>
                   </div>
-
-                  {/* Response time */}
                   <div style={{ textAlign: 'right', flexShrink: 0, minWidth: '52px' }}>
                     <p style={{ fontSize: '11px', color: 'var(--label)' }}>ping</p>
                     <p style={{ fontSize: '12px', color: 'var(--dim)' }}>
@@ -147,7 +141,6 @@ export default function StatusPage() {
           )}
         </div>
 
-        {/* Footer */}
         <p style={{ fontSize: '11px', color: 'var(--label)', textAlign: 'center' }}>
           Powered by{' '}
           <a href="https://github.com/g0rzki/uptime-monitor" target="_blank" rel="noreferrer" style={{ color: 'var(--accent2)', textDecoration: 'none' }}>
