@@ -9,6 +9,7 @@ Projekt budowany jako samodzielne portfolio SaaS poza studiami — od zera, bez 
 ## Demo
 
 **Live:** https://monitor.gorzkiewicz.dev  
+**Status page:** https://monitor.gorzkiewicz.dev/status  
 Konto demo: `demo@demo.com` / `demo1234`
 
 ---
@@ -17,10 +18,11 @@ Konto demo: `demo@demo.com` / `demo1234`
 
 - **Projektowanie REST API** — endpointy z autoryzacją JWT, walidacją danych wejściowych, obsługą błędów
 - **Praca z bazą danych** — SQLAlchemy ORM, relacje między tabelami, migracje przez Alembic
-- **Zadania w tle** — APScheduler uruchamiający cykliczne HTTP pingi bez zewnętrznych zależności (bez Celery)
-- **Bezpieczeństwo** — rate limiting (slowapi), ochrona przed SSRF przy walidacji URL, limit zasobów per użytkownik
+- **Zadania w tle** — APScheduler uruchamiający cykliczne HTTP pingi z retry logic (3 próby przed DOWN)
+- **Bezpieczeństwo** — rate limiting (slowapi), ochrona przed SSRF przy walidacji URL, limit zasobów per użytkownik, blokada destruktywnych akcji dla konta demo
 - **Integracja z zewnętrznym API** — Resend do wysyłki emaili z logiką anty-spam
 - **Frontend SPA** — React + Vite, wykresy response time (Recharts), zarządzanie tokenem JWT
+- **Publiczna status page** — dostępna bez logowania, auto-odświeżanie co 60s, uptime 24h per serwis
 - **Deploy** — Railway (backend + managed PostgreSQL) + Vercel (frontend), automatyczny z GitHuba
 
 ---
@@ -28,12 +30,16 @@ Konto demo: `demo@demo.com` / `demo1234`
 ## Funkcjonalności
 
 - Monitorowanie dowolnych endpointów HTTP/HTTPS
-- Konfigurowalny interwał sprawdzania (per monitor)
+- Konfigurowalny interwał sprawdzania (1/5/10/30 min, per monitor)
+- Retry logic — 3 próby przed oznaczeniem serwisu jako DOWN (eliminacja false positives)
 - Powiadomienia email przy awarii i powrocie do działania — jeden alert na incydent
 - Historia czasów odpowiedzi z wykresem
 - Dashboard z widokiem statusów wszystkich monitorów
+- Publiczna status page z uptime 24h — dostępna bez logowania
+- Zarządzanie kontem — zmiana hasła, usunięcie konta
 - Autentykacja JWT z rate limitingiem na endpointach auth
 - Ochrona przed SSRF i limit monitorów per konto (max 20)
+- Endpoint `/health` dla liveness check
 
 ---
 
@@ -47,6 +53,7 @@ Konto demo: `demo@demo.com` / `demo1234`
 | Email | Resend |
 | Frontend | React + Vite |
 | Deploy | Railway + Vercel |
+| Domeny | Cloudflare (gorzkiewicz.dev) |
 
 ---
 
@@ -63,13 +70,14 @@ uptime-monitor/
 │   │   └── versions/
 │   ├── app/
 │   │   ├── api/
-│   │   │   ├── deps.py       # get_current_user — dependency injection
+│   │   │   ├── deps.py       # get_current_user, require_non_demo — dependency injection
 │   │   │   └── routes/
 │   │   │       ├── auth.py
-│   │   │       └── monitors.py
+│   │   │       ├── monitors.py
+│   │   │       └── users.py  # Zmiana hasła, usunięcie konta
 │   │   ├── core/
 │   │   │   ├── config.py     # Ustawienia przez pydantic-settings
-│   │   │   ├── scheduler.py  # APScheduler — cykliczne pingi
+│   │   │   ├── scheduler.py  # APScheduler — cykliczne pingi z retry logic
 │   │   │   └── security.py   # JWT, bcrypt
 │   │   ├── db/
 │   │   │   ├── base.py       # DeclarativeBase
@@ -87,11 +95,12 @@ uptime-monitor/
     │   ├── api/              # Klienty HTTP (axios)
     │   ├── components/       # MonitorCard, StatusBadge, ResponseChart
     │   ├── hooks/            # useAuth
-    │   ├── pages/            # Login, Register, Dashboard, MonitorDetail
+    │   ├── pages/            # Login, Register, Dashboard, MonitorDetail, Settings, StatusPage
     │   ├── App.jsx
     │   └── main.jsx
     ├── index.html
     ├── package.json
+    ├── vercel.json           # SPA routing — rewrite do index.html
     └── vite.config.js        # Proxy /api -> localhost:8000
 ```
 
@@ -159,6 +168,10 @@ MAIL_FROM=onboarding@resend.dev
 - [x] Auth — rejestracja, login, JWT, rate limiting
 - [x] CRUD monitorów + walidacja URL (SSRF) + limit per konto
 - [x] Scheduler — cykliczne sprawdzanie HTTP, wykrywanie awarii
+- [x] Retry logic — 3 próby przed DOWN, eliminacja false positives
 - [x] Powiadomienia email przez Resend
-- [x] Frontend React — dashboard, wykresy
-- [x] Deploy Railway + Vercel
+- [x] Frontend React — dashboard, wykresy, settings
+- [x] Publiczna status page z uptime 24h
+- [x] Zarządzanie kontem — zmiana hasła, usunięcie konta
+- [x] Deploy Railway + Vercel + domeny Cloudflare
+- [x] Endpoint /health, UTC timezone fix, bufor interwału schedulera
