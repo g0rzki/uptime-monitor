@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler  # noqa: PLC2701
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from app.api.routes import auth, monitors
+from app.api.routes import auth, monitors, users
 from app.core.scheduler import start_scheduler, stop_scheduler
 
 # Rejestracja modeli SQLAlchemy — wymagane żeby mapper widział wszystkie encje
@@ -48,6 +48,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(monitors.router)
+app.include_router(users.router)
 
 @app.get("/health")
 async def health():

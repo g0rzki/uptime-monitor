@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import func
 from sqlalchemy.orm import Session, joinedload
 from app.db.session import get_db
 from app.api.deps import get_current_user
 from app.models.user import User
 from app.models.monitor import Monitor
 from app.models.monitor_check import MonitorCheck
-from app.schemas.monitor import MonitorCreate, MonitorUpdate, MonitorResponse
+from app.schemas.monitor import MonitorCreate, MonitorUpdate, MonitorResponse, StatusMonitorResponse
 from app.schemas.check import CheckResponse
 from app.services import monitor_service
 from app.services.alert_service import send_alert
@@ -93,3 +94,54 @@ def test_alert(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Monitor not found")
     send_alert(db, monitor, is_up=False)  # type: ignore
     return {"message": "Test alert sent"}
+
+
+@router.get("/public/status", response_model=list[StatusMonitorResponse], include_in_schema=True)
+def get_public_status(db: Session = Depends(get_db)):
+    """
+    Publiczny endpoint statusów — nie wymaga JWT.
+    Zwraca tylko aktywne monitory konta demo z ostatnim statusem i uptime za 24h.
+    """
+    from app.api.deps import DEMO_EMAIL
+    from app.models.user import User as UserModel
+
+    demo_user = db.query(UserModel).filter(UserModel.email == DEMO_EMAIL).first()
+    if not demo_user:
+        return []
+
+    monitors = db.query(Monitor).filter(
+        Monitor.user_id == demo_user.id,
+        Monitor.is_active == True  # noqa: E712
+    ).all()
+
+    result = []
+    for monitor in monitors:
+        # Ostatni check — aktualny status
+        last_check = db.query(MonitorCheck).filter(
+            MonitorCheck.monitor_id == monitor.id
+        ).order_by(MonitorCheck.checked_at.desc()).first()
+
+        # Uptime za ostatnie 24h — procent udanych pingów
+        from datetime import timedelta
+        cutoff = datetime.utcnow() - timedelta(hours=24)
+        total = db.query(func.count(MonitorCheck.id)).filter(
+            MonitorCheck.monitor_id == monitor.id,
+            MonitorCheck.checked_at >= cutoff
+        ).scalar()
+        up = db.query(func.count(MonitorCheck.id)).filter(
+            MonitorCheck.monitor_id == monitor.id,
+            MonitorCheck.checked_at >= cutoff,
+            MonitorCheck.is_up == True  # noqa: E712
+        ).scalar()
+
+        uptime_pct = round((up / total * 100), 1) if total > 0 else None
+
+        result.append(StatusMonitorResponse(
+            url=str(monitor.url),
+            is_up=last_check.is_up if last_check else None,
+            last_checked=last_check.checked_at if last_check else None,
+            uptime_24h=uptime_pct,
+            response_time_ms=last_check.response_time_ms if last_check else None,
+        ))
+
+    return result

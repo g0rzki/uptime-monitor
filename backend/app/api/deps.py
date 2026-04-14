@@ -33,3 +33,19 @@ def get_current_user(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
 
     return user  # type: ignore
+
+# Email konta demo — blokada destruktywnych akcji
+DEMO_EMAIL = "demo@demo.com"
+
+
+def require_non_demo(user: User = Depends(get_current_user)) -> User:
+    """
+    Dependency injection — blokuje destruktywne akcje dla konta demo.
+    Używana w endpointach zmiany hasła i usunięcia konta.
+    """
+    if user.email == DEMO_EMAIL:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This action is disabled for the demo account"
+        )
+    return user

@@ -24,3 +24,15 @@ class MonitorResponse(BaseModel):
 
     class Config:
         from_attributes = True  # Obsługa obiektów SQLAlchemy
+
+
+class StatusMonitorResponse(BaseModel):
+    """Publiczny widok monitora — bez wrażliwych danych (brak user_id, id)."""
+    url: str
+    is_up: Optional[bool]
+    last_checked: Optional[datetime]
+    uptime_24h: Optional[float]
+    response_time_ms: Optional[int]
+
+    class Config:
+        from_attributes = True
