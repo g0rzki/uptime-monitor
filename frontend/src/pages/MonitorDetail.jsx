@@ -4,6 +4,9 @@ import { getMonitors, getChecks, updateMonitor } from '../api/monitors'
 import StatusBadge from '../components/StatusBadge'
 import ResponseChart from '../components/ResponseChart'
 
+// Backend zwraca datetime bez 'Z' — dodajemy żeby przeglądarka wiedziała że to UTC
+const utc = (dateStr) => new Date(dateStr + 'Z').toLocaleString('pl-PL')
+
 export default function MonitorDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -72,7 +75,7 @@ export default function MonitorDetail() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <StatusBadge isUp={lastCheck?.is_up ?? true} />
             <p style={{ fontSize: '11px', color: 'var(--label)' }}>
-              Ostatni check: {lastCheck ? new Date(lastCheck.checked_at).toLocaleString() : '—'}
+              Ostatni check: {lastCheck ? utc(lastCheck.checked_at) : '—'}
             </p>
             {avgResponse && (
               <p style={{ fontSize: '11px', color: 'var(--label)' }}>Średni czas: {avgResponse}ms</p>
@@ -118,7 +121,7 @@ export default function MonitorDetail() {
                   {c.response_time_ms ? `${c.response_time_ms}ms` : '—'}
                 </span>
                 <span style={{ color: 'var(--label)', fontSize: '11px' }}>
-                  {new Date(c.checked_at).toLocaleString()}
+                  {utc(c.checked_at)}
                 </span>
               </div>
             ))}
