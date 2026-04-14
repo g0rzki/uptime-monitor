@@ -43,9 +43,10 @@ export default function MonitorCard({ monitor, onDeleted }) {
       </div>
       <button
         onClick={handleDelete}
-        style={{ color: 'var(--border)', fontSize: '18px', background: 'none', border: 'none', cursor: 'pointer', marginLeft: '12px', transition: 'color 0.2s' }}
-        onMouseEnter={e => e.currentTarget.style.color = '#ff5f57'}
-        onMouseLeave={e => e.currentTarget.style.color = 'var(--border)'}
+        title="Usuń monitor"
+        style={{ color: 'var(--dim)', fontSize: '18px', background: 'none', border: 'none', cursor: 'pointer', marginLeft: '12px', padding: '4px 6px', borderRadius: '4px', transition: 'color 0.2s, background 0.2s' }}
+        onMouseEnter={e => { e.currentTarget.style.color = '#ff5f57'; e.currentTarget.style.background = '#ff5f5715' }}
+        onMouseLeave={e => { e.currentTarget.style.color = 'var(--dim)'; e.currentTarget.style.background = 'none' }}
       >
         ×
       </button>

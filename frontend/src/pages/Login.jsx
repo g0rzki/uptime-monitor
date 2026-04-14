@@ -66,6 +66,16 @@ export default function Login({ onLogin }) {
               Zaloguj się
             </button>
           </form>
+          <div
+            onClick={() => { setEmail('demo@demo.com'); setPassword('demo1234') }}
+            style={{ marginTop: '16px', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '4px', cursor: 'pointer', transition: 'border-color 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = '#5affa3'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+          >
+            <p style={{ fontSize: '10px', color: 'var(--label)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>Konto demo</p>
+            <p style={{ fontSize: '12px', color: 'var(--dim)', fontFamily: 'monospace' }}>demo@demo.com / demo1234</p>
+            <p style={{ fontSize: '10px', color: 'var(--label)', marginTop: '4px' }}>Kliknij żeby wypełnić</p>
+          </div>
         </div>
 
         <p style={{ fontSize: '12px', color: 'var(--label)', textAlign: 'center', marginTop: '16px' }}>
