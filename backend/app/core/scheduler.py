@@ -14,27 +14,50 @@ logger = logging.getLogger(__name__)
 # Globalny scheduler — uruchamiany przez lifespan w main.py
 scheduler = AsyncIOScheduler()
 
+# Liczba prób przed uznaniem monitora za DOWN — chroni przed false positives
+RETRY_COUNT = 3
+# Przerwa między próbami w sekundach
+RETRY_DELAY_SECONDS = 5
+# Bufor czasowy (s) — scheduler odpala się co 60s, bufor eliminuje systematyczne dryfowanie interwału
+INTERVAL_BUFFER_SECONDS = 30
 
-async def ping_monitor(monitor: Monitor, db: Session) -> None:
+
+async def ping_once(url: str) -> tuple[bool, int | None, int | None]:
     """
-    Odpytuje pojedynczy monitor przez HTTP GET.
-    Zapisuje wynik do MonitorCheck i wysyła alert jeśli stan się zmienił.
+    Pojedyncze odpytanie URL przez HTTP GET.
+    Zwraca (is_up, status_code, response_time_ms).
     Serwis uznawany jest za DOWN jeśli status >= 500 lub brak odpowiedzi.
     """
-    is_up = False
-    status_code = None
-    response_time_ms = None
-
     try:
         start = datetime.utcnow()
         async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.get(monitor.url)
+            response = await client.get(url)
         elapsed = (datetime.utcnow() - start).total_seconds() * 1000
         is_up = response.status_code < 500
-        status_code = response.status_code
-        response_time_ms = int(elapsed)
+        return is_up, response.status_code, int(elapsed)
     except Exception as e:
-        logger.warning(f"Monitor {monitor.id} ({monitor.url}) failed: {e}")
+        logger.warning(f"Ping failed for {url}: {e}")
+        return False, None, None
+
+
+async def ping_monitor(monitor: Monitor, db: Session) -> None:
+    """
+    Odpytuje pojedynczy monitor z retry logic.
+    Monitor uznawany jest za DOWN dopiero po RETRY_COUNT nieudanych próbach z rzędu —
+    chroni przed false positives spowodowanymi chwilowymi problemami sieciowymi.
+    Zapisuje wynik ostatniej próby do MonitorCheck i wysyła alert jeśli stan się zmienił.
+    """
+    is_up, status_code, response_time_ms = await ping_once(monitor.url)
+
+    # Retry — tylko jeśli pierwsza próba nie powiodła się
+    if not is_up:
+        for attempt in range(1, RETRY_COUNT):
+            logger.info(f"Monitor {monitor.id} ({monitor.url}) — retry {attempt}/{RETRY_COUNT - 1}")
+            import asyncio
+            await asyncio.sleep(RETRY_DELAY_SECONDS)
+            is_up, status_code, response_time_ms = await ping_once(monitor.url)
+            if is_up:
+                break  # Serwis odpowiedział — nie ma potrzeby dalszych prób
 
     # Pobierz poprzedni check do porównania stanu
     previous = db.query(MonitorCheck).filter(
@@ -63,12 +86,14 @@ async def run_checks() -> None:
     """
     Główny job schedulera — odpala się co 60s.
     Pobiera aktywne monitory i pinguje te, którym minął interwał od ostatniego checku.
+    Bufor INTERVAL_BUFFER_SECONDS zapobiega systematycznemu dryfowaniu interwału
+    wynikającemu z granularności schedulera (60s).
     """
     from sqlalchemy.orm import joinedload
     db = SessionLocal()
     try:
         monitors = db.query(Monitor).options(
-            joinedload(Monitor.user)  # eager load — potrzebne do wysyłki emaila
+            joinedload(Monitor.user)
         ).filter(Monitor.is_active == True).all()  # noqa: E712
 
         for monitor in monitors:
@@ -76,10 +101,10 @@ async def run_checks() -> None:
                 MonitorCheck.monitor_id == monitor.id
             ).order_by(MonitorCheck.checked_at.desc()).first()
 
-            # Pomiń jeśli nie minął jeszcze interwał monitora
+            # Pomiń jeśli nie minął jeszcze interwał monitora (z buforem)
             if last_check:
                 elapsed = (datetime.utcnow() - last_check.checked_at).total_seconds()
-                if elapsed < monitor.interval_minutes * 60:
+                if elapsed < (monitor.interval_minutes * 60) - INTERVAL_BUFFER_SECONDS:
                     continue
 
             await ping_monitor(monitor, db)

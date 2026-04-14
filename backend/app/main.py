@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler  # noqa: PLC2701
@@ -47,3 +48,8 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(monitors.router)
+
+@app.get("/health")
+async def health():
+    """Endpoint liveness check — używany przez Railway i monitoring zewnętrzny."""
+    return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
