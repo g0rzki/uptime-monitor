@@ -102,10 +102,10 @@ def get_public_status(db: Session = Depends(get_db)):
     Publiczny endpoint statusów — nie wymaga JWT.
     Zwraca tylko aktywne monitory konta demo z ostatnim statusem i uptime za 24h.
     """
-    from app.api.deps import DEMO_EMAIL
+    STATUS_EMAIL = "status@gorzkiewicz.dev"
     from app.models.user import User as UserModel
 
-    demo_user = db.query(UserModel).filter(UserModel.email == DEMO_EMAIL).first()
+    demo_user = db.query(UserModel).filter(UserModel.email == STATUS_EMAIL).first()
     if not demo_user:
         return []
 

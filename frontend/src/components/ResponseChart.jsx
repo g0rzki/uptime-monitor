@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 // Wykres liniowy response time — dane posortowane od najstarszych (reverse checks)
 export default function ResponseChart({ checks }) {
   const data = [...checks].reverse().map(c => ({
-    time: new Date(c.checked_at).toLocaleTimeString(),
+    time: new Date(c.checked_at + 'Z').toLocaleTimeString('pl-PL'),
     ms: c.response_time_ms,
     up: c.is_up
   }))

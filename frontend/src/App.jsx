@@ -5,9 +5,10 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import MonitorDetail from './pages/MonitorDetail'
+import Settings from './pages/Settings'
+import StatusPage from './pages/StatusPage'
 
 export default function App() {
-  // Stan auth oparty na obecności tokenu JWT w localStorage
   const [isAuthenticated, setIsAuthenticated] = useState(!!getToken())
 
   const handleLogin = () => setIsAuthenticated(true)
@@ -24,6 +25,9 @@ export default function App() {
           isAuthenticated ? <Navigate to="/dashboard" /> : <Register onLogin={handleLogin} />
         } />
 
+        {/* Publiczna strona statusowa — dostępna bez logowania */}
+        <Route path="/status" element={<StatusPage />} />
+
         {/* Chronione — przekieruj na login jeśli niezalogowany */}
         <Route path="/dashboard" element={
           isAuthenticated ? <Dashboard onLogout={handleLogout} /> : <Navigate to="/login" />
@@ -31,8 +35,11 @@ export default function App() {
         <Route path="/monitors/:id" element={
           isAuthenticated ? <MonitorDetail /> : <Navigate to="/login" />
         } />
+        <Route path="/settings" element={
+          isAuthenticated ? <Settings onLogout={handleLogout} /> : <Navigate to="/login" />
+        } />
 
-        {/* Fallback — przekieruj na odpowiednią stronę */}
+        {/* Fallback */}
         <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />} />
       </Routes>
     </BrowserRouter>

@@ -45,14 +45,32 @@ export default function Dashboard({ onLogout }) {
           <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#5affa3', boxShadow: '0 0 8px #5affa3', display: 'inline-block' }} />
           <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text)' }}>Uptime Monitor</span>
         </div>
-        <button
-          onClick={() => { onLogout(); navigate('/login') }}
-          style={{ fontSize: '12px', color: 'var(--label)', background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.2s' }}
-          onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
-          onMouseLeave={e => e.currentTarget.style.color = 'var(--label)'}
-        >
-          Wyloguj
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button
+            onClick={() => navigate('/status')}
+            style={{ fontSize: '12px', color: 'var(--label)', background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#5affa3'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--label)'}
+          >
+            Status page ↗
+          </button>
+          <button
+            onClick={() => navigate('/settings')}
+            style={{ fontSize: '12px', color: 'var(--label)', background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--label)'}
+          >
+            Ustawienia
+          </button>
+          <button
+            onClick={() => { onLogout(); navigate('/login') }}
+            style={{ fontSize: '12px', color: 'var(--label)', background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.color = 'var(--text)'}
+            onMouseLeave={e => e.currentTarget.style.color = 'var(--label)'}
+          >
+            Wyloguj
+          </button>
+        </div>
       </header>
 
       <main style={{ maxWidth: '640px', margin: '0 auto', padding: '32px 24px' }}>

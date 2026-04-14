@@ -79,6 +79,12 @@ export default function Login({ onLogin }) {
         </div>
 
         <p style={{ fontSize: '12px', color: 'var(--label)', textAlign: 'center', marginTop: '16px' }}>
+          <Link to="/status" style={{ color: 'var(--accent)', textDecoration: 'none' }}>
+            Zobacz status serwisów ↗
+          </Link>
+        </p>
+
+        <p style={{ fontSize: '12px', color: 'var(--label)', textAlign: 'center', marginTop: '16px' }}>
           Nie masz konta?{' '}
           <Link to="/register" style={{ color: 'var(--accent2)', textDecoration: 'none' }}>Zarejestruj się</Link>
         </p>
