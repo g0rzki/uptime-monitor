@@ -34,17 +34,19 @@ def mask_url(url: str) -> str:
 
 async def ping_once(url: str) -> tuple[bool, int | None, int | None]:
     """
-    Pojedyncze odpytanie URL przez HTTP GET.
+    Pojedyncze odpytanie URL przez HTTP stream — pobiera tylko nagłówki, ignoruje body.
+    Zapobiega ładowaniu całej odpowiedzi do pamięci (ochrona przed OOM przy dużych stronach).
     Zwraca (is_up, status_code, response_time_ms).
     Serwis uznawany jest za DOWN jeśli status >= 500 lub brak odpowiedzi.
     """
     try:
         start = datetime.utcnow()
         async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.get(url)
+            async with client.stream("GET", url) as response:
+                status_code = response.status_code
         elapsed = (datetime.utcnow() - start).total_seconds() * 1000
-        is_up = response.status_code < 500
-        return is_up, response.status_code, int(elapsed)
+        is_up = status_code < 500
+        return is_up, status_code, int(elapsed)
     except Exception as e:
         logger.warning(f"Ping failed for {mask_url(url)}: {e}")
         return False, None, None
