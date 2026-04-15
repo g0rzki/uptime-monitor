@@ -16,6 +16,10 @@ logger = logging.getLogger(__name__)
 # Globalny scheduler — uruchamiany przez lifespan w main.py
 scheduler = AsyncIOScheduler()
 
+# Globalny klient HTTP — współdzielony przez wszystkie pingi, unika overhead tworzenia/niszczenia
+# przy każdym requeście i stabilizuje zużycie RAM
+http_client: httpx.AsyncClient | None = None
+
 # Liczba prób przed uznaniem monitora za DOWN — chroni przed false positives
 RETRY_COUNT = 3
 # Przerwa między próbami w sekundach
@@ -36,14 +40,15 @@ async def ping_once(url: str) -> tuple[bool, int | None, int | None]:
     """
     Pojedyncze odpytanie URL przez HTTP stream — pobiera tylko nagłówki, ignoruje body.
     Zapobiega ładowaniu całej odpowiedzi do pamięci (ochrona przed OOM przy dużych stronach).
+    Używa globalnego klienta HTTP dla wydajności.
     Zwraca (is_up, status_code, response_time_ms).
     Serwis uznawany jest za DOWN jeśli status >= 500 lub brak odpowiedzi.
     """
+    global http_client
     try:
         start = datetime.utcnow()
-        async with httpx.AsyncClient(timeout=10) as client:
-            async with client.stream("GET", url) as response:
-                status_code = response.status_code
+        async with http_client.stream("GET", url) as response:
+            status_code = response.status_code
         elapsed = (datetime.utcnow() - start).total_seconds() * 1000
         is_up = status_code < 500
         return is_up, status_code, int(elapsed)
@@ -125,12 +130,17 @@ async def run_checks() -> None:
 
 def start_scheduler() -> None:
     """Rejestruje job i startuje scheduler. Wywoływany przez lifespan aplikacji."""
-    scheduler.add_job(run_checks, "interval", seconds=60, id="monitor_checks")
+    global http_client
+    http_client = httpx.AsyncClient(timeout=10, follow_redirects=True)
+    scheduler.add_job(run_checks, "interval", seconds=60, id="monitor_checks", max_instances=1)
     scheduler.start()
     logger.info("Scheduler started")
 
 
-def stop_scheduler() -> None:
-    """Zatrzymuje scheduler przy zamknięciu aplikacji."""
+async def stop_scheduler() -> None:
+    """Zatrzymuje scheduler i zamyka klienta HTTP przy zamknięciu aplikacji."""
+    global http_client
     scheduler.shutdown()
+    if http_client and not http_client.is_closed:
+        await http_client.aclose()
     logger.info("Scheduler stopped")

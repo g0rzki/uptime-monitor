@@ -36,7 +36,7 @@ async def lifespan(app: FastAPI):
     """Lifecycle aplikacji — scheduler startuje przy uruchomieniu, zatrzymuje się przy zamknięciu."""
     start_scheduler()
     yield
-    stop_scheduler()
+    await stop_scheduler()
 
 
 app = FastAPI(title="Uptime Monitor API", lifespan=lifespan)
