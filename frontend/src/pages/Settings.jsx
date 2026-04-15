@@ -33,7 +33,14 @@ export default function Settings({ onLogout }) {
       setCurrentPassword('')
       setNewPassword('')
     } catch (err) {
-      setPasswordError(err.response?.data?.detail || 'Błąd zmiany hasła')
+      const detail = err.response?.data?.detail
+      if (detail === 'This action is disabled for the demo account') {
+        setPasswordError('Zmiana hasła jest niedostępna dla konta demo.')
+      } else if (Array.isArray(detail)) {
+        setPasswordError(detail[0]?.msg || 'Błąd zmiany hasła')
+      } else {
+        setPasswordError(detail || 'Błąd zmiany hasła')
+      }
     }
   }
 
@@ -117,6 +124,9 @@ export default function Settings({ onLogout }) {
                 onFocus={e => e.target.style.borderColor = '#5ab4ff'}
                 onBlur={e => e.target.style.borderColor = 'var(--border)'}
               />
+              <p style={{ fontSize: '11px', color: 'var(--label)', marginTop: '4px' }}>
+                Min. 8 znaków, co najmniej jedna litera i jedna cyfra
+              </p>
             </div>
             {passwordError && (
               <p style={{ fontSize: '12px', color: '#ff5f57' }}>

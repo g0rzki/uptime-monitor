@@ -12,13 +12,17 @@ export default function Register({ onLogin }) {
     e.preventDefault()
     setError('')
     try {
-      // Rejestracja + automatyczne logowanie po sukcesie
       await register(email, password)
       await login(email, password)
       onLogin()
       navigate('/dashboard')
     } catch (err) {
-      setError(err.response?.data?.detail || 'Błąd rejestracji')
+      const detail = err.response?.data?.detail
+      if (Array.isArray(detail)) {
+        setError(detail[0]?.msg || 'Błąd rejestracji')
+      } else {
+        setError(detail || 'Błąd rejestracji')
+      }
     }
   }
 
@@ -47,7 +51,7 @@ export default function Register({ onLogin }) {
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '11px', color: 'var(--label)', marginBottom: '6px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Hasło (min. 8 znaków)</label>
+              <label style={{ display: 'block', fontSize: '11px', color: 'var(--label)', marginBottom: '6px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Hasło</label>
               <input
                 type="password"
                 value={password}
@@ -58,6 +62,9 @@ export default function Register({ onLogin }) {
                 onFocus={e => e.target.style.borderColor = '#5ab4ff'}
                 onBlur={e => e.target.style.borderColor = 'var(--border)'}
               />
+              <p style={{ fontSize: '11px', color: 'var(--label)', marginTop: '4px' }}>
+                Min. 8 znaków, co najmniej jedna litera i jedna cyfra
+              </p>
             </div>
             {error && <p style={{ fontSize: '12px', color: '#ff5f57' }}>{error}</p>}
             <button
