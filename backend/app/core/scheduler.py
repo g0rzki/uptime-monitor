@@ -90,6 +90,13 @@ async def ping_monitor(monitor: Monitor, db: Session) -> None:
     db.add(check)
     db.commit()
 
+    # Usuń stare checki — zachowaj max 500 per monitor (pokrywa ~1.7 dnia przy interwale 5 min)
+    subquery = db.query(MonitorCheck.id).filter(
+        MonitorCheck.monitor_id == monitor.id
+    ).order_by(MonitorCheck.checked_at.desc()).offset(500).scalar_subquery()
+    db.query(MonitorCheck).filter(MonitorCheck.id.in_(subquery)).delete(synchronize_session=False)
+    db.commit()
+
     # Alert tylko przy zmianie stanu — nie przy pierwszym pingu
     state_changed = previous is not None and previous.is_up != is_up
     if state_changed:
