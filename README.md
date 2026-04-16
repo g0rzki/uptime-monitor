@@ -23,7 +23,7 @@ Konto demo: `demo@demo.com` / `demo1234`
 - **Integracja z zewnętrznym API** — Resend do wysyłki emaili z logiką anty-spam
 - **Frontend SPA** — React + Vite, wykresy response time (Recharts), zarządzanie tokenem JWT
 - **Publiczna status page** — dostępna bez logowania, auto-odświeżanie co 60s, uptime 24h per serwis
-- **Deploy** — Railway (backend + managed PostgreSQL) + Vercel (frontend), automatyczny z GitHuba
+- **Deploy** — Render (backend) + Supabase (PostgreSQL) + Vercel (frontend), automatyczny z GitHuba
 
 ---
 
@@ -45,15 +45,16 @@ Konto demo: `demo@demo.com` / `demo1234`
 
 ## Stack
 
-| Warstwa | Technologia |
-|---|---|
-| Backend | FastAPI (Python 3.14) |
-| Baza danych | PostgreSQL 16 |
-| Scheduler | APScheduler |
-| Email | Resend |
-| Frontend | React + Vite |
-| Deploy | Railway + Vercel |
-| Domeny | Cloudflare (gorzkiewicz.dev) |
+| Warstwa          | Technologia                  |
+|------------------|------------------------------|
+| Backend          | FastAPI (Python 3.14)        |
+| Baza danych      | PostgreSQL 16                |
+| Scheduler        | APScheduler                  |
+| Email            | Resend                       |
+| Frontend         | React + Vite                 |
+| Deploy           | Render + Vercel              |
+| Baza produkcyjna | Supabase (PostgreSQL)        |
+| Domeny           | Cloudflare (gorzkiewicz.dev) |
 
 ---
 
@@ -175,3 +176,4 @@ MAIL_FROM=onboarding@resend.dev
 - [x] Zarządzanie kontem — zmiana hasła, usunięcie konta
 - [x] Deploy Railway + Vercel + domeny Cloudflare
 - [x] Endpoint /health, UTC timezone fix, bufor interwału schedulera
+- [x] Migracja na Render + Supabase, optymalizacje pamięci RAM
