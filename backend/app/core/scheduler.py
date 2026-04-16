@@ -131,6 +131,10 @@ async def run_checks() -> None:
                     continue
 
             await ping_monitor(monitor, db)
+
+        # Wyczyść identity map po każdym cyklu — zwalnia obiekty SQLAlchemy z pamięci
+        db.expunge_all()
+        
     finally:
         db.close()
 
